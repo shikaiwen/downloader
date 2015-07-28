@@ -18,6 +18,9 @@ public class DownloadThread extends Thread{
 	
 	private int threadNum;
 	
+	private boolean isOver;
+	private Object monitor;
+	
 	private RandomAccessFile randomFile;
 
 	public DownloadThread(long startByte, long endBytes, URL url, int threadNum, RandomAccessFile randomFile ) {
@@ -30,14 +33,14 @@ public class DownloadThread extends Thread{
 	}
 
 
-	public static void main(String[] args) throws Exception {
-		URL url = new URL("http://apache.fayea.com/httpcomponents/httpclient/binary/httpcomponents-client-4.5-bin.tar.gz");
-	
-		File f = new File("file.zip") ;
-		RandomAccessFile randomFile = new RandomAccessFile(f,"rw");
-		
-		new DownloadThread(4000000, 6000000 , url, 2,randomFile).start();
-	}
+//	public static void main(String[] args) throws Exception {
+//		URL url = new URL("http://apache.fayea.com/httpcomponents/httpclient/binary/httpcomponents-client-4.5-bin.tar.gz");
+//	
+//		File f = new File("file.zip") ;
+//		RandomAccessFile randomFile = new RandomAccessFile(f,"rw");
+//		
+//		new DownloadThread(4000000, 6000000 , url, 2,randomFile).start();
+//	}
 	
 	@Override
 	public void run() {
@@ -64,6 +67,11 @@ public class DownloadThread extends Thread{
 			randomFile.write(bytes);
 			
 			System.out.println("thread " + threadNum +" over ..");
+			this.setOver(true);
+			
+			synchronized(this.monitor){
+				monitor.notify();
+			}
 		} catch (IOException e) {
 			String msg = threadNum +e.getMessage() + "";
 //			e.printStackTrace();
@@ -95,6 +103,26 @@ public class DownloadThread extends Thread{
 
 	public void setEndBytes(long endBytes) {
 		this.endBytes = endBytes;
+	}
+
+
+	public boolean isOver() {
+		return isOver;
+	}
+
+
+	public void setOver(boolean isOver) {
+		this.isOver = isOver;
+	}
+
+
+	public Object getMonitor() {
+		return monitor;
+	}
+
+
+	public void setMonitor(Object monitor) {
+		this.monitor = monitor;
 	}
 
 
